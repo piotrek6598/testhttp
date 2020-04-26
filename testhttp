@@ -1,25 +1,21 @@
 #!/bin/bash
 
+# Default stunnel port.
 stunnel_port="127.0.0.1:10127"
 
+# Error when number of arguments is wrong.
 if [ "$#" -ne 2 ]; then
   echo "ERROR: Usage ./testhttp <cookies file> <testing http address>" >&2
-  echo $#
   exit 1
 fi
 
-#echo "arg 1 is: $1"  # Debug line
-#echo "arg 2 is: $2"  # Debug line
-
+# Splitting given address to check if address is http or https.
 dir=${2#*://*/}
 host_dir=${2%"/$dir"}
 host=${host_dir#*://}
 http_prefix=${host_dir%"://$host"}
 
-#echo $http_prefix # Debug line
-#echo $host        # Debug line
-#echo $dir         # Debug line
-
+# Checking if address is http or https and setting default port.
 if [[ $http_prefix == "http" ]]; then
   port_num=80
 elif [[ $http_prefix == "https" ]]; then
@@ -29,16 +25,13 @@ else
   exit 1
 fi
 
+# Adding port to host address if host address doesn't contain it.
 host_port=${host#*:}
-
 if [[ "$host_port" == "$host" ]]; then
   host="$host:$port_num"
 fi
 
-#echo $http_prefix  # Debug line
-#echo $host         # Debug line
-#echo $2            # Debug line
-
+# Executing testhttp_raw if http address was given.
 if [[ "$http_prefix" == "http" ]]; then
   ./testhttp_raw $host $1 $2
   if (($(echo $?) != 0)); then
@@ -47,9 +40,14 @@ if [[ "$http_prefix" == "http" ]]; then
   exit 0
 fi
 
+# Creating stunnel config file.
 msg="pid = $(pwd)/stunnel.pid\n[service]\nclient = yes\naccept = $stunnel_port\nconnect = $host\n"
 echo -e $msg >stunnel.conf
+
+# Executing stunnel.
 stunnel stunnel.conf
+
+# Running testhttp_raw through stunnel.
 ./testhttp_raw $stunnel_port $1 $2
 exit_code=$(echo $?)
 
@@ -61,6 +59,7 @@ cleanup() {
   exit $exit_code
 }
 
+# Cleaning when signal occurs.
 trap cleanup SIGHUP SIGTERM SIGINT
 
 cleanup
