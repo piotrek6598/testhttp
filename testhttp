@@ -1,0 +1,66 @@
+#!/bin/bash
+
+stunnel_port="127.0.0.1:10127"
+
+if [ "$#" -ne 2 ]; then
+  echo "ERROR: Usage ./testhttp <cookies file> <testing http address>" >&2
+  echo $#
+  exit 1
+fi
+
+#echo "arg 1 is: $1"  # Debug line
+#echo "arg 2 is: $2"  # Debug line
+
+dir=${2#*://*/}
+host_dir=${2%"/$dir"}
+host=${host_dir#*://}
+http_prefix=${host_dir%"://$host"}
+
+#echo $http_prefix # Debug line
+#echo $host        # Debug line
+#echo $dir         # Debug line
+
+if [[ $http_prefix == "http" ]]; then
+  port_num=80
+elif [[ $http_prefix == "https" ]]; then
+  port_num=443
+else
+  echo "ERROR: Wrong http / https address" >&2
+  exit 1
+fi
+
+host_port=${host#*:}
+
+if [[ "$host_port" == "$host" ]]; then
+  host="$host:$port_num"
+fi
+
+#echo $http_prefix  # Debug line
+#echo $host         # Debug line
+#echo $2            # Debug line
+
+if [[ "$http_prefix" == "http" ]]; then
+  ./testhttp_raw $host $1 $2
+  if (($(echo $?) != 0)); then
+    exit 1
+  fi
+  exit 0
+fi
+
+msg="pid = $(pwd)/stunnel.pid\n[service]\nclient = yes\naccept = $stunnel_port\nconnect = $host\n"
+echo -e $msg >stunnel.conf
+stunnel stunnel.conf
+./testhttp_raw $stunnel_port $1 $2
+exit_code=$(echo $?)
+
+cleanup() {
+  stunnel_pid=$(<stunnel.pid)
+  kill -9 $stunnel_pid
+  rm -f stunnel.conf
+  rm -f stunnel.pid
+  exit $exit_code
+}
+
+trap cleanup SIGHUP SIGTERM SIGINT
+
+cleanup
