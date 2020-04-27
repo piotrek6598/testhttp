@@ -495,10 +495,10 @@ int main(int argc, char *argv[]) {
         memset(RESPONSE_BUFFER + remain_in_buffer + rcv_len, 0,
                2 * BUFFER_SIZE - remain_in_buffer - rcv_len);
         // Parsing response.
-        content_len += (int) parse_http_response(&reading_msg_body,
-                                                 check_status, &is_chunked,
-                                                 &remain_in_buffer,
-                                                 &chunk_len_left);
+        content_len += parse_http_response(&reading_msg_body,
+                                           check_status, &is_chunked,
+                                           &remain_in_buffer,
+                                           &chunk_len_left);
         if (content_len == SHORT_REPORT)
             report_completed = true;
         check_status = false;
