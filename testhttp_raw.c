@@ -347,7 +347,7 @@ int parse_http_response(bool *reading_msg_body,
                 } else {
                     // We only need to know content's size.
                     tmp_line_2 = strstr(tmp_line, "\r\n");
-                    content_size += strlen(tmp_line) - strlen(tmp_line_2);
+                    content_size += strlen(tmp_line) - strlen(tmp_line_2) + 2;
                     tmp_line = tmp_line_2;
                     tmp_line += 2;
                 }
@@ -372,6 +372,11 @@ int parse_http_response(bool *reading_msg_body,
                     tmp_line = strchr(tmp_line, ' ');
                     tmp_line++;
                     tmp_line_2 = strchr(tmp_line, ';');
+                    if (tmp_line_2 == NULL) {
+                        tmp_line_2 = strstr(tmp_line, "\r\n");
+                        if (tmp_line_2 == NULL)
+                            fatal("line unexpectly broken");
+                    }
                     printf("%.*s\n",
                            (int) (strlen(tmp_line) - strlen(tmp_line_2)),
                            tmp_line);
@@ -490,6 +495,9 @@ int main(int argc, char *argv[]) {
                        BUFFER_SIZE - 1);
         if (rcv_len < 0)
             syserr("read");
+
+        if (rcv_len == 0 && !reading_msg_body)
+            fatal("server closed connection");
 
         // Filling rest of buffer with 0.
         memset(RESPONSE_BUFFER + remain_in_buffer + rcv_len, 0,
