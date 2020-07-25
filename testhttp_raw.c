@@ -375,7 +375,7 @@ int parse_http_response(bool *reading_msg_body,
                     if (tmp_line_2 == NULL) {
                         tmp_line_2 = strstr(tmp_line, "\r\n");
                         if (tmp_line_2 == NULL)
-                            fatal("line unexpectly broken");
+                            fatal("line unexpectedly broken");
                     }
                     printf("%.*s\n",
                            (int) (strlen(tmp_line) - strlen(tmp_line_2)),
