@@ -20,7 +20,7 @@ make
 ./testhttp <cookies file> <tested http address>
 ```
 
-Tests given http(s) address. In HTTP GET request set all cookies from file.
+Tests given http(s) address. In HTTP GET request sets all cookies from file.
 File format is: <br>
 Each cookie is described by single line in format: cookiekey=cookievalue
 
