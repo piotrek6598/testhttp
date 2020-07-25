@@ -513,7 +513,7 @@ int main(int argc, char *argv[]) {
     } while (rcv_len > 0 && !report_completed);
 
     if (!report_completed)
-        printf("Dlugosc zasobu: %d\n", content_len);
+        printf("Content length: %d\n", content_len);
 
     if (close(sock) < 0)
         syserr("close");
